@@ -3,11 +3,13 @@ node_modules/
 frontend/node_modules/
 backend/node_modules/
 
-# Environment
-.env
+# Secrets & Env
+*.env
 .env.local
 .env.production
-*.env
+secrets/
+*.pem
+*.key
 
 # Build outputs
 frontend/build/
@@ -26,9 +28,15 @@ Thumbs.db
 
 # Terraform
 terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfvars
 terraform/*.tfstate
 terraform/*.tfstate.*
-terraform/.terraform.lock.hcl
+terraform/*.tfstate.backup
+*.tfstate
+*.tfstate.backup
+/infrastructure/terraform/terraform.tfvars
+/infrastructure/terraform/.terraform
 
 # Ansible
 ansible/ansible-vault
