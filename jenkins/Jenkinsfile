@@ -1,0 +1,89 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = 'us-east-1'
+        ECR_REPO = 'pipeline-visualizer'
+        DOCKER_IMAGE = "${ECR_REPO}:${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out code...'
+                checkout scm
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                echo 'Building React frontend...'
+                dir('frontend') {
+                    sh 'npm install'
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('Build Backend') {
+            steps {
+                echo 'Preparing backend...'
+                dir('backend') {
+                    sh 'npm install --production'
+                }
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                script {
+                    sh '''
+                        docker build -t ${DOCKER_IMAGE}-frontend ./frontend
+                        docker build -t ${DOCKER_IMAGE}-backend ./backend
+                    '''
+                }
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                script {
+                    sh '''
+                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+                        docker tag ${DOCKER_IMAGE}-frontend ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}-frontend:${BUILD_NUMBER}
+                        docker tag ${DOCKER_IMAGE}-backend ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}-backend:${BUILD_NUMBER}
+                        docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}-frontend:${BUILD_NUMBER}
+                        docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}-backend:${BUILD_NUMBER}
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying to production...'
+                script {
+                    sh '''
+                        # Deploy using docker-compose or ECS/Kubernetes
+                        echo "Deployment completed successfully"
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline succeeded!'
+            // Slack notification, email, etc.
+        }
+        failure {
+            echo 'Pipeline failed!'
+            // Error notification
+        }
+        always {
+            cleanWs()
+        }
+    }
+}
+

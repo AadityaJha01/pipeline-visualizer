@@ -1,0 +1,7 @@
+[servers]
+jenkins-server ansible_host=YOUR_SERVER_IP ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/your-key.pem
+
+[servers:vars]
+jenkins_admin_user=admin
+jenkins_admin_pass=your-secure-password
+
