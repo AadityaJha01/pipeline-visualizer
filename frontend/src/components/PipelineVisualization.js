@@ -35,16 +35,32 @@ const PipelineVisualization = ({ pipelines, loading }) => {
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
     pipelines.forEach((pipeline, pipelineIndex) => {
-      const yPosition = pipelineIndex * 110 + 50;
+      const yPosition = pipelineIndex * 120 + 60;
       
-      // Pipeline name
+      // Pipeline name with better styling
       g.append('text')
-        .attr('x', -10)
+        .attr('x', -15)
         .attr('y', yPosition)
         .attr('text-anchor', 'end')
-        .attr('font-size', '14px')
-        .attr('font-weight', '600')
+        .attr('font-size', '15px')
+        .attr('font-weight', '700')
         .attr('fill', '#1a202c')
+        .attr('letter-spacing', '-0.3px')
+        .style('cursor', 'pointer')
+        .on('mouseenter', function() {
+          d3.select(this)
+            .attr('fill', '#667eea')
+            .transition()
+            .duration(200)
+            .attr('font-size', '16px');
+        })
+        .on('mouseleave', function() {
+          d3.select(this)
+            .attr('fill', '#1a202c')
+            .transition()
+            .duration(200)
+            .attr('font-size', '15px');
+        })
         .text(pipeline.name);
 
       // Stages visualization
@@ -55,26 +71,46 @@ const PipelineVisualization = ({ pipelines, loading }) => {
         const x = stageIndex * stageWidth;
         const stageColor = stageColors[stage.status] || stageColors['NOT_BUILT'];
         
-        // Stage rectangle
+        // Stage rectangle with enhanced styling
         const rect = g.append('rect')
           .attr('x', x)
-          .attr('y', yPosition - 20)
-          .attr('width', stageWidth - 10)
-          .attr('height', 40)
-          .attr('rx', 8)
+          .attr('y', yPosition - 25)
+          .attr('width', stageWidth - 12)
+          .attr('height', 50)
+          .attr('rx', 12)
           .attr('fill', stageColor)
-          .attr('opacity', 0.8)
-          .attr('stroke', '#fff')
-          .attr('stroke-width', 2);
+          .attr('opacity', 0.9)
+          .attr('stroke', 'rgba(255, 255, 255, 0.8)')
+          .attr('stroke-width', 2.5)
+          .style('filter', 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))')
+          .style('cursor', 'pointer')
+          .on('mouseenter', function() {
+            d3.select(this)
+              .transition()
+              .duration(200)
+              .attr('opacity', 1)
+              .attr('y', yPosition - 28)
+              .attr('height', 56);
+          })
+          .on('mouseleave', function() {
+            d3.select(this)
+              .transition()
+              .duration(200)
+              .attr('opacity', 0.9)
+              .attr('y', yPosition - 25)
+              .attr('height', 50);
+          });
 
-        // Stage name
+        // Stage name with better visibility
         g.append('text')
-          .attr('x', x + (stageWidth - 10) / 2)
-          .attr('y', yPosition + 5)
+          .attr('x', x + (stageWidth - 12) / 2)
+          .attr('y', yPosition + 8)
           .attr('text-anchor', 'middle')
-          .attr('font-size', '11px')
-          .attr('font-weight', '500')
+          .attr('font-size', '12px')
+          .attr('font-weight', '600')
           .attr('fill', '#fff')
+          .attr('letter-spacing', '0.3px')
+          .style('text-shadow', '0 1px 2px rgba(0, 0, 0, 0.2)')
           .text(stage.name);
 
         // Animation for running stages
@@ -97,27 +133,68 @@ const PipelineVisualization = ({ pipelines, loading }) => {
             });
         }
 
-        // Arrow between stages
+        // Arrow between stages with subtle animation
         if (stageIndex < stages.length - 1) {
-          g.append('line')
-            .attr('x1', x + stageWidth - 10)
+          const arrowLine = g.append('line')
+            .attr('x1', x + stageWidth - 12)
             .attr('y1', yPosition)
             .attr('x2', x + stageWidth)
             .attr('y2', yPosition)
-            .attr('stroke', '#94a3b8')
-            .attr('stroke-width', 2)
-            .attr('marker-end', 'url(#arrowhead)');
+            .attr('stroke', '#cbd5e1')
+            .attr('stroke-width', 3)
+            .attr('marker-end', 'url(#arrowhead)')
+            .style('opacity', 0.7);
+          
+          // Add subtle pulsing animation to arrows
+          arrowLine
+            .transition()
+            .duration(1000)
+            .style('opacity', 0.9)
+            .transition()
+            .duration(1000)
+            .style('opacity', 0.7)
+            .on('end', function repeat() {
+              d3.select(this)
+                .transition()
+                .duration(1000)
+                .style('opacity', 0.9)
+                .transition()
+                .duration(1000)
+                .style('opacity', 0.7)
+                .on('end', repeat);
+            });
         }
       });
 
-      // Overall status indicator
+      // Overall status indicator with pulse animation
       const overallStatus = pipeline.status || 'NOT_BUILT';
-      g.append('circle')
-        .attr('cx', -30)
+      const statusCircle = g.append('circle')
+        .attr('cx', -35)
         .attr('cy', yPosition)
-        .attr('r', 8)
+        .attr('r', 10)
         .attr('fill', stageColors[overallStatus])
-        .attr('opacity', overallStatus === 'RUNNING' ? 0.7 : 1);
+        .attr('opacity', overallStatus === 'RUNNING' ? 0.8 : 1)
+        .style('filter', 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))');
+      
+      if (overallStatus === 'RUNNING') {
+        statusCircle
+          .transition()
+          .duration(750)
+          .attr('r', 12)
+          .transition()
+          .duration(750)
+          .attr('r', 10)
+          .on('end', function repeat() {
+            d3.select(this)
+              .transition()
+              .duration(750)
+              .attr('r', 12)
+              .transition()
+              .duration(750)
+              .attr('r', 10)
+              .on('end', repeat);
+          });
+      }
     });
 
     // Arrow marker definition
