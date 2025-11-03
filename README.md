@@ -119,6 +119,7 @@ NODE_ENV=development
 
 ## 📚 Documentation
 
+- [🚀 Complete Deployment Guide](./DEPLOYMENT.md) - **START HERE for deployment**
 - [Frontend Setup](./frontend/README.md)
 - [Backend API Docs](./backend/README.md)
 - [Terraform Guide](./terraform/README.md)
